@@ -12,38 +12,90 @@ History
            appended a string like "_DUP#" to separate.
     2014-11-14 Lance Parsons
         Cleaned up code style
+        Added option to specify feature types recognized
 '''
 
+import argparse
 import sys
 import re
-
-if len(sys.argv) < 2:
-    print('This script converts .GTF into .BED annotations.\n')
-    print('Usage: gtf2bed {OPTIONS} [.GTF file]\n')
-    print('Options:')
-    print('-c color\tSpecify the color of the track. This is a RGB value '
-          'represented as "r,g,b". Default 255,0,0 (red)')
-    print('\nNote:')
-    print('1\tOnly "exon" and "transcript" are recognized in the feature '
-          'field (3rd field).')
-    print('2\tIn the attribute list of .GTF file, the script tries to find '
-          '"gene_id", "transcript_id" and "FPKM" attribute, and convert '
-          'them as name and score field in .BED file.')
-    print('Author: Wei Li (li.david.wei AT gmail.com)')
-    sys.exit()
-
-color = '255,0,0'
-
-
-for i in range(len(sys.argv)):
-    if sys.argv[i] == '-c':
-        color = sys.argv[i+1]
-
 
 allids = {}
 
 
-def printbedline(estart, eend, field, nline):
+def main():
+    parser = argparse.ArgumentParser(epilog='''
+    Note:
+    1. Only "exon" and "transcript" are recognized in the feature
+    field (3rd field).\n
+    2. In the attribute list of .GTF file, the script tries to find
+    "gene_id", "transcript_id" and "FPKM" attribute, and convert
+    them as name and score field in .BED file.\n
+    Author: Wei Li (li.david.wei AT gmail.com)
+    ''')
+    parser.add_argument('gtf_file')
+    parser.add_argument('-c', '--color', default='255,0,0', help='Specify the '
+                        'color of the track. This is a RGB value represented '
+                        'as "r,g,b". Default 255,0,0 (red)')
+    parser.add_argument('--exon_features', default=['exon'],
+                        nargs='+', help='Specify the gtf '
+                        'features that are recognized as exons')
+    args = parser.parse_args()
+
+    estart = []
+    eend = []
+    # read lines one to one
+    nline = 0
+    prevfield = []
+    prevtransid = ''
+    for lines in open(args.gtf_file):
+        field = lines.strip().split('\t')
+        nline = nline+1
+        if len(field) < 9:
+            print('Error: the GTF should has at least 9 fields at line ' +
+                  str(nline), file=sys.stderr)
+            continue
+        if field[1] != 'Cufflinks':
+            pass
+            # print('Warning: the second field is expected to be '
+            #       '\'Cufflinks\' at line '+str(nline), file=sys.stderr)
+        if field[2] not in ['transcript'] + args.exon_features:
+            # print(field[2])
+            # print('Error: the third field is expected to be one of: '
+            #       '%s at line %i, saw %s' %
+            #       (['transcript'] + args.exon_features, nline, field[2]),
+            #       file=sys.stderr)
+            continue
+        transid = re.findall(r'transcript_id \"([\w\.]+)\"', field[8])
+        if len(transid) > 0:
+            transid = transid[0]
+        else:
+            transid = ''
+        if field[2] == 'transcript' or (prevtransid != '' and transid != '' and
+                                        transid != prevtransid):
+            # print('prev:'+prevtransid+', current:'+transid)
+            # print(estart, eend, prevfield)
+            # A new transcript record, write
+            if len(estart) != 0:
+                printbedline(estart, eend, prevfield, nline, args.color)
+            estart = []
+            eend = []
+        prevfield = field
+        prevtransid = transid
+        if field[2] in ['exon', 'CDS']:
+            try:
+                est = int(field[3])
+                eed = int(field[4])
+                estart += [est]
+                eend += [eed]
+            except ValueError:
+                print('Error: non-number fields at line ' + str(nline),
+                      file=sys.stderr)
+    # the last record
+    if len(estart) != 0:
+        printbedline(estart, eend, field, nline, args.color)
+
+
+def printbedline(estart, eend, field, nline, color):
     try:
         estp = estart[0]-1
         eedp = eend[-1]
@@ -90,52 +142,8 @@ def printbedline(estart, eend, field, nline):
         print('Error: non-number fields at line '+str(nline),
               file=sys.stderr)
 
+if __name__ == '__main__':
+    main()
 
-estart = []
-eend = []
-# read lines one to one
-nline = 0
-prevfield = []
-prevtransid = ''
-for lines in open(sys.argv[-1]):
-    field = lines.strip().split('\t')
-    nline = nline+1
-    if len(field) < 9:
-        print('Error: the GTF should has at least 9 fields at line ' +
-              str(nline), file=sys.stderr)
-        continue
-    if field[1] != 'Cufflinks':
-        pass
-        # print('Warning: the second field is expected to be \'Cufflinks\' at '
-        #       'line '+str(nline), file=sys.stderr)
-    if field[2] != 'exon' and field[2] != 'transcript':
-        print('Error: the third filed is expected to be \'exon\' or '
-              '\'transcript\' at line ' + str(nline), file=sys.stderr)
-        continue
-    transid = re.findall(r'transcript_id \"([\w\.]+)\"', field[8])
-    if len(transid) > 0:
-        transid = transid[0]
-    else:
-        transid = ''
-    if field[2] == 'transcript' or (prevtransid != '' and transid != '' and
-                                    transid != prevtransid):
-        # print('prev:'+prevtransid+', current:'+transid)
-        # A new transcript record, write
-        if len(estart) != 0:
-            printbedline(estart, eend, prevfield, nline)
-        estart = []
-        eend = []
-    prevfield = field
-    prevtransid = transid
-    if field[2] == 'exon':
-        try:
-            est = int(field[3])
-            eed = int(field[4])
-            estart += [est]
-            eend += [eed]
-        except ValueError:
-            print('Error: non-number fields at line '+str(nline),
-                  file=sys.stderr)
-# the last record
-if len(estart) != 0:
-    printbedline(estart, eend, field, nline)
+
+
