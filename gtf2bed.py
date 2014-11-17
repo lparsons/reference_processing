@@ -142,8 +142,6 @@ def printbedline(estart, eend, field, nline, color):
         print('Error: non-number fields at line '+str(nline),
               file=sys.stderr)
 
+
 if __name__ == '__main__':
     main()
-
-
-
