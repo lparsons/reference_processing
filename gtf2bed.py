@@ -39,6 +39,9 @@ def main():
     parser.add_argument('--exon_features', default=['exon'],
                         nargs='+', help='Specify the gtf '
                         'features that are recognized as exons')
+    parser.add_argument('--name_attribute', default='transcript_id',
+                        help='attribute used for transcript name (default: '
+                        '"transcript_id"')
     args = parser.parse_args()
 
     estart = []
@@ -76,7 +79,8 @@ def main():
             # print(estart, eend, prevfield)
             # A new transcript record, write
             if len(estart) != 0:
-                printbedline(estart, eend, prevfield, nline, args.color)
+                printbedline(estart, eend, prevfield, nline, args.color,
+                             args.name_attribute)
             estart = []
             eend = []
         prevfield = field
@@ -92,22 +96,26 @@ def main():
                       file=sys.stderr)
     # the last record
     if len(estart) != 0:
-        printbedline(estart, eend, field, nline, args.color)
+        printbedline(estart, eend, field, nline, args.color,
+                     args.name_attribute)
 
 
-def printbedline(estart, eend, field, nline, color):
+def printbedline(estart, eend, field, nline, color, name_attribute):
     try:
         estp = estart[0]-1
         eedp = eend[-1]
         # use regular expression to get transcript_id, gene_id and expression
         # level
         geneid = re.findall(r'gene_id \"([\w\.]+)\"', field[8])
-        transid = re.findall(r'transcript_id \"([\w\.]+)\"', field[8])
+        transid = re.findall(name_attribute + r' \"([\w\.]+)\"', field[8])
         fpkmval = re.findall(r'FPKM \"([\d\.]+)\"', field[8])
+        genename = re.findall(r'gene_name \"([\w\.]+)\"', field[8])
         if len(geneid) == 0:
             print('Warning: no gene_id field', file=sys.stderr)
         else:
             geneid = geneid[0]
+        if len(transid) == 0:
+            transid = re.findall(r'transcript_id \"([\w\.]+)\"', field[8])
         if len(transid) == 0:
             print('Warning: no transcript_id field', file=sys.stderr)
             transid = 'Trans_'+str(nline)

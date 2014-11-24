@@ -119,7 +119,7 @@ rule gene_names:
 rule gene_ids:
     input: "{organism}_genes.gff"
     output: temporary("{organism}_gene_ids.txt")
-    shell: "awk -F'\\t' -v OFS='\\t' '{{print $9}}' {input} | perl -n -e'/ID=(.+?);.*Name=(.+?);.*{GENEID}(.+?);.*locus_tag=(.+?)[;\\n]/ && print \"$1\\t$2\\t$3\\t$4\\n\"' | sort - > {output}"
+    shell: "{REFPROCESSING_DIR}/extract_ids_from_gff.py {input} --attributes ID Name Dbxref locus_tag > {output}"
 
 rule cds_products:
     input: cds="{organism}_cds.gff"
@@ -139,4 +139,4 @@ rule gene_annotation_table:
 rule gtf2bed12:
     input: "{organism}.gtf"
     output: "{organism}.bed"
-    shell: "{REFPROCESSING_DIR}/gtf2bed.py {input} --exon_features CDS exon > {output}"
+    shell: "{REFPROCESSING_DIR}/gtf2bed.py {input} --exon_features CDS exon --name_attribute=gene_name > {output}"
