@@ -56,3 +56,11 @@ Utilities
 Add the sequence id to the ID (and Parent) attributes in a GFF file. This is
 useful when there are multiple GFF files provided by NCBI that have duplicate
 IDs (such as when they include a plasmid with a bacterial sequence).
+
+
+### `change_gff_id.py`
+
+Change the ID (and Parent) attributes in a GFF file. This is is useful when
+there is another suitable identifier to use (such as `locus_tag`). Note that
+not all attributes may have this id, so it might be necessary to use *both*
+`add_seqid_to_gff_id.py` and `change_gff_id.py` to ensure no duplicates.

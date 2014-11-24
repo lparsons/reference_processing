@@ -139,4 +139,4 @@ rule gene_annotation_table:
 rule gtf2bed12:
     input: "{organism}.gtf"
     output: "{organism}.bed"
-    shell: "{REFPROCESSING_DIR}/gtf2bed.py {input} --exon_features CDS exon --name_attribute=gene_name > {output}"
+    shell: "{REFPROCESSING_DIR}/gtf2bed.py {input} --exon_features CDS exon > {output}"
