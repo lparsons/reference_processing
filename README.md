@@ -5,8 +5,10 @@ AnnotationSnakefile
 -------------------
 
 `AnnotationSnakefile` is a
-[`Snakemake`](https://bitbucket.org/johanneskoester/snakemake) file containing
+[Snakemake](https://bitbucket.org/johanneskoester/snakemake) file containing
 rules for generating bacterial annotation files from NCBI GFF files.
+
+`extract_ids_from_gff.py` requires [gffutils](https://pypi.python.org/pypi/gffutils).
 
 NCBI GFF downloads: ftp://ftp.ncbi.nlm.nih.gov/genomes/
 
