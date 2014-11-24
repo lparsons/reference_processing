@@ -56,7 +56,7 @@ rule gtf:
 rule parsed_gff:
     input: gff="{organism}.gff", fasta="{organism}.fasta"
     output: gff="{organism}_parsed.gff", errors="{organism}_gff_errors.txt"
-    shell: "gffread -E -g {input.fasta} -o {output.gff} {input.gff} 2>{output.errors}"
+    shell: "gffread -E -F -O -g {input.fasta} -o {output.gff} {input.gff} 2>{output.errors}"
 
 rule genes_gff:
     input: "{organism}.gff"

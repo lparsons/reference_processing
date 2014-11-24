@@ -14,8 +14,9 @@ def add_chr(d):
                                                d.attributes['Parent'][0])
     return d
 
-db = gffutils.create_db(sys.argv[1], ':memory:', force=True,
-                        merge_strategy="merge", transform=add_chr)
+db = gffutils.create_db(sys.argv[1], ':memory:', transform=add_chr,
+                        merge_strategy="create_unique",
+                        keep_order=True)
 
 for f in db.all_features():
     print f
