@@ -10,6 +10,8 @@ rules for generating bacterial annotation files from NCBI GFF files.
 
 `extract_ids_from_gff.py` requires [gffutils](https://pypi.python.org/pypi/gffutils).
 
+`organism_parsers/` contains parsers for specific organisms
+
 NCBI GFF downloads: ftp://ftp.ncbi.nlm.nih.gov/genomes/
 
 Input:
