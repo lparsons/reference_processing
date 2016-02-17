@@ -1,1 +1,4 @@
 ^test_data/
+\.snakemake
+.*\.swp
+^genomes/

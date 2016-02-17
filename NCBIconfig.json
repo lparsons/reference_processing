@@ -1,0 +1,8 @@
+{
+    "FTP_LOCATION" : "ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF_000002315.4_Gallus_gallus-5.0",
+    "FILE_BASE" : "GCF_000002315.4_Gallus_gallus-5.0_genomic",
+    "gff_feature_type": "gene",
+    "attributes": ["ID", "Name", "Dbxref"],
+    "dbxref_attributes": ["GeneID", "CGNC"]
+}
+
