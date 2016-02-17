@@ -25,7 +25,9 @@ configfile: "NCBIconfig.json"
 
 rule all:
     #input: "%s.fna.fai" % config["FILE_BASE"],
-    input: "%s_entrezid.gtf" % config["FILE_BASE"]
+    input: "%s.gtf" % config["FILE_BASE"],
+           "%s_entrezid.gtf" % config["FILE_BASE"],
+           "%s.bed" % config["FILE_BASE"]
 
 # rule samtools_faidx:
 #     input: "{file}"
@@ -41,13 +43,13 @@ rule gff_to_gtf:
     input: gff="{file}.gff"
            # fasta="{file}.fna",
            # fasta_fai="{file}.fna.fai"
-    output: "{file}.gtf"
+    output: temp("{file}_raw.gtf")
     log: "{file}_gffread.log"
     shell: 'gffread ' + # gffread from Cufflinks suite
         # '-g "{input.fasta}" ' +
         # '-s "{input.fasta_fai}" ' +
         # '-F ' + # Full GFF attribute preservation
-        '-O ' + # process also non-transcript GFF records (by default non-transcript records are ignored)
+        # '-O ' + # process also non-transcript GFF records (by default non-transcript records are ignored)
         '-E ' + # expose (warn about) duplicate transcript IDs and other potential problems with the given GFF/GTF records
         '-D ' + # decode url encoded characters within attributes
         '-T ' + # -o option will output GTF format instead of GFF3
@@ -55,8 +57,23 @@ rule gff_to_gtf:
         '"{input.gff}" ' + # input GFF file
         '2> "{log}"' # Output warnings to logfile
 
+rule clean_gtf:
+    input: "{file}_raw.gtf"
+    output: "{file}.gtf"
+    script: './fix_gtf.py'
+
 rule gtf_entrezid:
     input: gtf="{file}.gtf",
            lookup="{file}_gff_attributes.txt"
     output: "{file}_entrezid.gtf"
     script: './translate_gtf_attribute.py' # -f 1 -t 3 "{input.gtf}" "{input.lookup}" > "{output}"'
+
+rule gtf_to_genePred:
+    input: "{file}.gtf"
+    output: temp("{file}.genePred")
+    shell: 'gtfToGenepred "{input}" "{output}"'
+
+rule genePred_to_bed12:
+    input: "{file}.genePred"
+    output: "{file}.bed"
+    shell: 'genePredToBed "{input}" "{output}"'

@@ -1,7 +1,7 @@
 # Reference Processing
 
 
-## NCBI Pipeline
+## NCBI Pipeline - `NCBISnakefile`
 
 `NCBISnakefile` is a
 [Snakemake](https://bitbucket.org/johanneskoester/snakemake) file containing
@@ -12,26 +12,25 @@ NCBI GFF and FASTA files can be obtained from: ftp://ftp.ncbi.nlm.nih.gov/genome
 **Input**:
 
 * `{organism}.gff` - GFF downloaded from NCBI
-* `{organism}.fna` - Fasta sequence
 * `NCBIconfig.json` - Configuration file specifying attributes to be used, etc.
 
 **Output**:
 
-* `{organsim}.fna.fai`
-* `{organsim}.gtf`
-* `{organsim}_entrezid.gtf`
-* `{organsim}.bed`
-* `{organsim}_entrezid.bed` *(Not yet implemented)*
+* `{organsim}_raw.gtf` - GTF converted using gffread from Cufflinks suite. 
+* `{organsim}.gtf` -GTF converted using gffread from Cufflinks suite, The `gene_id` attribute is set to the `gene_id` from the GFF file, and missing `gene_id` attributes are added with empty values. 
+* `{organsim}_entrezid.gtf` - GTF with `gene_id` replaced by Entrez GeneID
+* `{organsim}.bed` - BED12 formatted file generated from GTF by UCSC Kent Utils. The name field is set to the `transcript_id` from the GFF/GTF files.
+* `{organsim}_entrezid.bed` - *(Not yet implemented)*
 
 **Usage**:
 
 1. Make copy of config and update as needed
 2. Run snakemake in the directory containing the input files:
-   
+
    `snakemake --snakefile /path/to/NCBISnakefile`
 
 
-## Bacterial Pipeline
+## Bacterial Pipeline - `AnnotationSnakefile`
 
 `AnnotationSnakefile` is a
 [Snakemake](https://bitbucket.org/johanneskoester/snakemake) file containing
