@@ -3,6 +3,7 @@
 
 from __future__ import print_function
 import argparse
+import numbers
 import re
 import sys
 
@@ -28,7 +29,7 @@ def main():
     translate_gtf_attribute(args.gtf_file, args.id_file, sys.stdout,
                             args.gtf_attribute,
                             args.from_field,
-                            args.to_filed)
+                            args.to_field)
 
 
 def translate_gtf_attribute(gtf_file, id_file, output_file,
@@ -44,17 +45,26 @@ def translate_gtf_attribute(gtf_file, id_file, output_file,
     :returns: TODO
 
     """
-    pass
+    headers = open(id_file, 'rU').readline().strip('\n').split('\t')
+    try:
+        from_field_num = from_field - 1
+    except TypeError:
+        from_field_num = headers.index(from_field)
+    try:
+        to_field_num = to_field - 1
+    except TypeError:
+        to_field_num = headers.index(to_field)
     translations = dict()
     for line in open(id_file, 'rU'):
-        fields = line.strip().split("\t")
-        translations.setdefault(fields[from_field-1],
-                                fields[to_field-1])
+        fields = line.strip('\n').split("\t")
+        translations.setdefault(fields[from_field_num],
+                                fields[to_field_num])
 
     regex = re.compile(r'(.*%s ")([^"]+)(".*)' % gtf_attribute)
     for line in open(gtf_file, 'rU'):
         m = re.match(regex, line)
-        if m:
+        if (m and (m.group(2) in translations) and
+                (translations[m.group(2)] != "")):
             output_file.write("%s%s%s\n" % (m.group(1),
                               translations[m.group(2)],
                               m.group(3)))
@@ -66,7 +76,8 @@ if 'snakemake' in globals():
     fh = open(snakemake.output[0], 'w')
     translate_gtf_attribute(snakemake.input['gtf'],
                      snakemake.input['lookup'],
-                     fh, "gene_id", 1, 3)
+                     #fh, "gene_id", 9, 12)
+                     fh, "gene_id", "ID", "GeneID")
     fh.close()
 
 if __name__ == "__main__":

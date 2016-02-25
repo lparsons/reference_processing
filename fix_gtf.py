@@ -8,14 +8,19 @@ import sys
 
 
 def main():
-    """Add empty gene_id attribute if it's missing to ensure file conforms to
-    specifications. The gene_id is sometimes missing from gffread output.
+    """Add gene_id attribute if it's missing to ensure file conforms to
+    specifications.
+    If gene_id is missing, use transcript_id else use empty string.
+    The gene_id is sometimes missing from gffread output.
 
     :returns: None
 
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('gtf_file')
+    parser.add_argument('--use_transcript_id_as_gene_id', action="store_true",
+                        help='If gene_id is missing, use transcript_id if '
+                        'set, otherwise use empty string')
     args = parser.parse_args()
     fix_gtf_records(args.gtf_file, sys.stdout)
 
@@ -29,13 +34,19 @@ def fix_gtf_records(gtf_file, output_file):
     :returns: None
 
     """
-    regex = re.compile(r'(.*gene_id ")([^"]+)(".*)')
+    gene_id_regex = re.compile(r'(.*gene_id ")([^"]+)(".*)')
+    transcript_id_regex = re.compile(r'(.*transcript_id ")([^"]+)(".*)')
     for line in open(gtf_file, 'rU'):
-        m = re.match(regex, line)
-        if m:
+        gene_id_match = re.match(gene_id_regex, line)
+        if gene_id_match:
             output_file.write(line)
         else:
-            output_file.write('%s gene_id "";\n' % line.strip())
+            transcript_id_match = re.match(transcript_id_regex, line)
+            if transcript_id_match:
+                gene_id = transcript_id_match.group(2)
+            else:
+                gene_id = ""
+            output_file.write('%s gene_id "%s";\n' % (line.strip(), gene_id))
 
 # When called as script from snakemake
 if 'snakemake' in globals():
