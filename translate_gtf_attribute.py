@@ -76,8 +76,8 @@ if 'snakemake' in globals():
     fh = open(snakemake.output[0], 'w')
     translate_gtf_attribute(snakemake.input['gtf'],
                      snakemake.input['lookup'],
-                     #fh, "gene_id", 9, 12)
-                     fh, "gene_id", "ID", "GeneID")
+                     fh, "gene_id", "ID",
+                     snakemake.config['preferred_identifier'])
     fh.close()
 
 if __name__ == "__main__":

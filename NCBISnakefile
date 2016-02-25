@@ -4,9 +4,9 @@ configfile: "NCBIconfig.json"
 
 rule all:
     #input: "%s.fna.fai" % config["FILE_BASE"],
-    input: "%s.gtf" % config["FILE_BASE"],
-           "%s_entrezid.gtf" % config["FILE_BASE"],
-           "%s.bed" % config["FILE_BASE"]
+    input: "%s_genomic.gtf" % config["FILE_BASE"],
+           "%s_genomic_%s.gtf" % (config["FILE_BASE"], config["preferred_identifier"]),
+           "%s_genomic.bed" % config["FILE_BASE"]
 
 # rule samtools_faidx:
 #     input: "{file}"
@@ -41,10 +41,10 @@ rule clean_gtf:
     output: "{file}.gtf"
     script: './fix_gtf.py'
 
-rule gtf_entrezid:
+rule gtf_alternate_id:
     input: gtf="{file}.gtf",
            lookup="{file}_gff_attributes.txt"
-    output: "{file}_entrezid.gtf"
+    output: "{file}_%s.gtf" % config["preferred_identifier"]
     script: './translate_gtf_attribute.py' # -f 1 -t 3 "{input.gtf}" "{input.lookup}" > "{output}"'
 
 rule gtf_to_genePred:
